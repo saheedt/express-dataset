@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-const { addEvent, getAllEvents } = require('../controllers/events');
+const { addEvent, getAllEvents, getByActor } = require('../controllers/events');
 
 // Routes related to event
 router
@@ -9,4 +9,5 @@ router
   .get(getAllEvents)
   .post(addEvent);
 
+router.route("/actors/:id").get(getByActor);
 module.exports = router;

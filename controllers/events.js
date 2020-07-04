@@ -1,58 +1,75 @@
 const db = require('../database');
-// fix err handling repitition
+const { BadRequestError } = require('../utils/errors/bad-request-error');
+const { InternalServerError } = require("../utils/errors/internal-server-error");
+const { OK, Created } = require('../utils/status-code');
+const { NotFoundError } = require('../utils/errors/not-found-error');
 
-const getAllEvents = (req, res) => {
-	db.find({}).sort({ id: 1 }).exec((err, docs) => {
-		if (err) {
-			return res.status(500).json({
-				message: 'Error fetching data'
-			});
-		}
-		res.status(200).json({
+const getAllEvents = async (req, res, next) => {
+	try { 
+		const docs = await db.find({}).sort({ id: 1 }).exec();
+		res.status(OK).json({
 			data: docs
-		});
-	});
-};
-
-const addEvent = (req, res) => {
-	console.log(req.body);
-	const { id, type, actor, repo, created_at } = req.body;
-	if (!id || !type || !actor || !repo || !created_at) {
-    return res.status(400).json({
-      message: "Invalid event data provided",
-    });
+		})
+	} catch (error) {
+		console.error('DatabaseOperation Error: ', error);
+		next(new InternalServerError({
+      message: "Error fetching data",
+    }));
 	}
-	
-	db.findOne({ id }, (err, doc) => {
-		if (err) {
-      return res.status(500).json({
-        message: "Error fetching data",
-      });
-		}
-		
-		if (doc) {
-			return res.status(400).json({
-				message: 'Event already exists'
-			});
-		}
+};
 
-		db.insert(req.body, (err, newDoc) => {
-			if (err) {
-        return res.status(500).json({
-          message: "Error storing data",
-        });
-			}
-			
-			res.status(201).json({
-				data: newDoc
-			});
-		});
-	});
+const addEvent = async (req, res, next) => {
+	try {
+		const { id, type, actor, repo, created_at } = req.body;
+    if (!id || !type || !actor || !repo || !created_at) {
+      return next(new BadRequestError({
+        message: "Invalid event data provided",
+      }));
+		}
+		const exists = await db.findOne({ id });
+		if (exists) {
+			return next(new BadRequestError({
+        message: "Event already exists",
+      }));
+		}
+    const newDoc = await db.insert(req.body);
+    res.status(Created).json({
+      data: newDoc,
+    });
+
+  } catch (error) {
+    console.error("DatabaseOperationError: ", error);
+		next(new InternalServerError({
+			message: "Error fetching data",
+		}));
+  }
 };
 
 
-var getByActor = () => {
+const getByActor = async (req, res, next) => {
+	const { id } = req.params;
+	try {
+		const events = await db.find({ 'actor.id': parseInt(id, 10) })
+			.sort({ id: 1 })
+			.exec();
+		
+		if (events.length <= 0) {
+			return next(new NotFoundError({
+				message: 'No event found by actor'
+			}));
+		}
 
+		res.status(OK).json({
+      data: events,
+    });
+	} catch (error) {
+		console.error("DatabaseOperationError: ", error);
+    next(
+      new InternalServerError({
+        message: "Error fetching data",
+      })
+    );
+	}
 };
 
 

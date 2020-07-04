@@ -10,6 +10,8 @@ var eraseEvents = require('./routes/eraseEvents');
 var events = require('./routes/events');
 var actor = require('./routes/actor');
 
+const { CustomError } = require('./utils/errors/custom-error');
+
 var app = express();
 
 // view engine setup
@@ -38,7 +40,13 @@ app.use(function(req, res, next) {
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
+  if (err instanceof CustomError) {
+    console.error('well caught!!');
+    return res.
+      status(err.statusCode)
+      .json(err.responseObject);
+  }
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

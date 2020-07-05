@@ -1,4 +1,4 @@
-const allowedActorUpdateAttrs = ["id", "avatar_url"];
+const allowedActorUpdateAttrs = ["id", "avatar_url", "login"];
 const actorsSortAttrs = {
   streak: "streak",
   events: "events"

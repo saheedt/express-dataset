@@ -3,8 +3,7 @@ const { NotFound } = require('../status-code');
 
 class NotFoundError extends CustomError {
   constructor(responseObject) {
-    super(responseObject.message);
-    this.statusCode = NotFound;
+    super(responseObject, NotFound);
     this.responseObject = responseObject;
     Object.setPrototypeOf(this, NotFoundError.prototype);
   }

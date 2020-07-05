@@ -42,10 +42,9 @@ app.use(function(req, res, next) {
 // error handler
 app.use(function (err, req, res, next) {
   if (err instanceof CustomError) {
-    console.error('well caught!!');
     return res.
       status(err.statusCode)
-      .json(err.responseObject);
+      .json(err.response);
   }
   // set locals, only providing error in development
   res.locals.message = err.message;

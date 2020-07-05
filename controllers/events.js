@@ -6,14 +6,15 @@ const { NotFoundError } = require('../utils/errors/not-found-error');
 
 const getAllEvents = async (req, res, next) => {
 	try { 
-		const docs = await db.find({}).sort({ id: 1 }).exec();
+		const events = await db.find({}).sort({ id: 1 }).exec();
 		res.status(OK).json({
-			data: docs
-		})
+      status_code: OK,
+      body: events
+    });
 	} catch (error) {
-		console.error('DatabaseOperation Error: ', error);
+		console.error('Operation Error: ', error);
 		next(new InternalServerError({
-      message: "Error fetching data",
+      message: "Error performing operation",
     }));
 	}
 };
@@ -33,14 +34,15 @@ const addEvent = async (req, res, next) => {
       }));
 		}
     const newDoc = await db.insert(req.body);
-    res.status(Created).json({
-      data: newDoc,
+		res.status(Created).json({
+      status_code: Created,
+      body: {},
     });
 
   } catch (error) {
-    console.error("DatabaseOperationError: ", error);
+    console.error("Operation Error: ", error);
 		next(new InternalServerError({
-			message: "Error fetching data",
+			message: "Error performing operation",
 		}));
   }
 };
@@ -60,21 +62,35 @@ const getByActor = async (req, res, next) => {
 		}
 
 		res.status(OK).json({
-      data: events,
+			status_code: OK,
+      body: events,
     });
 	} catch (error) {
-		console.error("DatabaseOperationError: ", error);
+		console.error("Operation Error: ", error);
     next(
       new InternalServerError({
-        message: "Error fetching data",
+        message: "Error performing operation",
       })
     );
 	}
 };
 
 
-var eraseEvents = () => {
-
+const eraseEvents = async (req, res, next) => {
+	try {
+		await db.remove({}, { multi: true });
+		res.status(OK).json({
+			status_code: OK,
+			body: {}
+    });
+	} catch (error) {
+		console.error("Operation Error: ", error);
+    next(
+      new InternalServerError({
+        message: "Error performing operation",
+      })
+    );
+	}
 };
 
 module.exports = {

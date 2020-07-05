@@ -99,20 +99,3 @@ module.exports = {
 	getByActor: getByActor,
 	eraseEvents: eraseEvents
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

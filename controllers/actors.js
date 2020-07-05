@@ -21,7 +21,7 @@ const getAllActors = async (req, res, next) => {
 		const actors = getActorsByAssociatedEvents(events);
 		res.status(OK).json({
 			status_code: OK,
-			data: actors
+			body: actors
 		});
 
 	} catch (error) {
@@ -46,7 +46,7 @@ const updateActor = async (req, res, next) => {
       );
     }
 
-		const { id, avatar_url } = req.body;
+		const { id, avatar_url, login } = req.body;
 		const found = await db.findOne({ "actor.id": id });
 
 		if (!found) {
@@ -56,6 +56,14 @@ const updateActor = async (req, res, next) => {
 				})
 			);
 		}
+
+		if (found.actor.login !== login) {
+			return next(
+        new BadRequestError({
+          message: "Can only update avatar",
+        })
+      );
+    }
 		
 		const update = await db.update(
       { "actor.id": id },
@@ -65,7 +73,7 @@ const updateActor = async (req, res, next) => {
 		
 		res.status(OK).json({
 			status_code: OK,
-			data: update
+			body: update
     });
 	} catch (error) {
 		console.error("Operation Error: ", error);
@@ -87,7 +95,7 @@ const getStreak = async (req, res, next) => {
 		const actorsByStreak = getActorsBystreak(events);
 		res.status(OK).json({
 			status_code: OK,
-			data: actorsByStreak
+			body: actorsByStreak
 		});
 
 	} catch (error) {

@@ -6,11 +6,11 @@ const { NotFoundError } = require('../utils/errors/not-found-error');
 
 const getAllEvents = async (req, res, next) => {
 	try { 
-		const docs = await db.find({}).sort({ id: 1 }).exec();
+		const events = await db.find({}).sort({ id: 1 }).exec();
 		res.status(OK).json({
-			status_code: OK,
-			data: docs
-		})
+      status_code: OK,
+      body: events
+    });
 	} catch (error) {
 		console.error('Operation Error: ', error);
 		next(new InternalServerError({
@@ -36,7 +36,7 @@ const addEvent = async (req, res, next) => {
     const newDoc = await db.insert(req.body);
 		res.status(Created).json({
       status_code: Created,
-      data: newDoc,
+      body: {},
     });
 
   } catch (error) {
@@ -63,7 +63,7 @@ const getByActor = async (req, res, next) => {
 
 		res.status(OK).json({
 			status_code: OK,
-      data: events,
+      body: events,
     });
 	} catch (error) {
 		console.error("Operation Error: ", error);
@@ -80,7 +80,8 @@ const eraseEvents = async (req, res, next) => {
 	try {
 		await db.remove({}, { multi: true });
 		res.status(OK).json({
-      status_code: OK
+			status_code: OK,
+			body: {}
     });
 	} catch (error) {
 		console.error("Operation Error: ", error);

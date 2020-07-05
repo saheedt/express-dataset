@@ -1,37 +1,34 @@
 const db = require("../database");
 const { BadRequestError } = require("../utils/errors/bad-request-error");
 const { InternalServerError } = require("../utils/errors/internal-server-error");
-const { OK, Created } = require("../utils/status-code");
+const { OK } = require("../utils/status-code");
 const { NotFoundError } = require("../utils/errors/not-found-error");
 
 const {
-  containsInvalidAttr,
-  extractDistinctActors,
   allowedActorUpdateAttrs,
-  actorStreak,
-  sortActorByStreak,
-  removeActorStreak,
-} = require("../utils");
+  containsInvalidAttr,
+	getActorsBystreak,
+	getActorsByAssociatedEvents,
+} = require("../utils/actors");
 
 const getAllActors = async (req, res, next) => {
-	// TODO
 	try {
 		const events = await db.find({}).sort({
-			actor: -1,
 			created_at: -1,
 			'actor.login': 1
-		}).exec()
-		// created_at: -1, "actor.login": 1
-		console.log(events);
-		const actors = extractDistinctActors(events);
+		}).exec();
+
+		const actors = getActorsByAssociatedEvents(events);
 		res.status(OK).json({
+			status_code: OK,
 			data: actors
-		})
+		});
+
 	} catch (error) {
-		console.error("DatabaseOperation Error: ", error);
+		console.error("Operation Error: ", error);
     next(
       new InternalServerError({
-        message: "Error fetching data",
+        message: "Error performing operation",
       })
     );
 	}
@@ -67,13 +64,14 @@ const updateActor = async (req, res, next) => {
     );
 		
 		res.status(OK).json({
+			status_code: OK,
 			data: update
     });
 	} catch (error) {
-		console.error("DatabaseOperation Error: ", error);
+		console.error("Operation Error: ", error);
     next(
       new InternalServerError({
-        message: "Error fetching data",
+        message: "Error performing operation",
       })
     );
 	}
@@ -81,23 +79,22 @@ const updateActor = async (req, res, next) => {
 
 const getStreak = async (req, res, next) => {
 	try {
-		const sortEvents = await db.find({})
-			.sort({ created_at: -1, 'actor.login': 1 })
-			.exec();
+		const events = await db.find({}).sort({
+			created_at: -1,
+			'actor.login': 1
+		}).exec();
 		
-		const sortByStreak = removeActorStreak(
-			sortActorByStreak(
-				actorStreak(
-					sortEvents
-				)
-			)
-		);
-		res.status(OK).json({ data: sortByStreak });
+		const actorsByStreak = getActorsBystreak(events);
+		res.status(OK).json({
+			status_code: OK,
+			data: actorsByStreak
+		});
+
 	} catch (error) {
-		console.error("DatabaseOperation Error: ", error);
+		console.error("Operation Error: ", error);
     next(
       new InternalServerError({
-        message: "Error fetching data",
+        message: "Error performing operation",
       })
     );
 	}
